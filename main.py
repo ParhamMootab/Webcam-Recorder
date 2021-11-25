@@ -1,15 +1,15 @@
 import tkinter as tk
 from clip import Clip
 import cv2
-clip = Clip()
-class GUI:
-    def __init__(self, master):
-        self.master = master
-        self.canvas = tk.Canvas(self.master, height=700, width=1000)
-        self.canvas.pack()
+from PIL import Image, ImageTk
 
-        self.label = tk.Label(self.master)
-        self.label.place(relwidth=1, relheight=0.9)
+
+class GUI:
+    def __init__(self, master, clip):
+        self.clip = clip
+        self.master = master
+        self.canvas = tk.Canvas(self.master, height=720, width=1280)
+        self.canvas.pack()
 
         self.toolbar = tk.Frame(self.master, bg="gray")
         self.toolbar.place(relwidth=1, relheight=0.1, rely=0.9)
@@ -33,22 +33,29 @@ class GUI:
         self.saveBtn = tk.Button(self.toolbar, image=self.savePhoto, bg="gray")
         self.saveBtn.image = self.savePhoto
         self.saveBtn.place(relx = 0.01, rely = 0.1)
+
         self.updateImage()
+        self.master.mainloop()
+        
 
     def updateImage(self):
-        vid = clip.startCam()
-        print(type(vid))
-        self.label = tk.Label(self.master, image=vid)
-        self.label.image = vid
-        self.label.place(relwidth=1, relheight=0.9)
-        self.label.after(10, self.updateImage())
+        frame, format = self.clip.startCam()
+        
+        format.write(cv2.cvtColor(frame,cv2.COLOR_RGB2BGR))
+        photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
+        self.master.one = photo
+        self.canvas.create_image(0, 0, image = photo, anchor = tk.NW)
+        self.master.after(100, self.updateImage)
+            
+        
      
 if __name__ == '__main__':
     root = tk.Tk()
     root.title("Webcam Recorder")
-    main_gui = GUI(root)
-    root.mainloop()
-    Clip.stopCam()
+    clip = Clip()
+    main_gui = GUI(root, clip)
+    
+    clip.__del__()
     
 
 
